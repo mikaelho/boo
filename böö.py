@@ -93,7 +93,8 @@ class FieldOfView(ui.View):
       
   def set_heading(self):
     heading = self.heading
-    location = inttuple(self.center)
+    h, w = self.playground.shape
+    location = (int(w/2), int(h/2)) #inttuple(self.center)
     sector_angle = 210
     left_edge = (heading - sector_angle/2) % 360
     right_edge = (heading + sector_angle/2) % 360
@@ -157,14 +158,22 @@ class FieldOfView(ui.View):
     #ui.set_shadow('white', 0, 0, 10)
     p.fill()
       
-v = Playground(background_color='#d2e7c9')
-v.present('full_screen', hide_title_bar=True)
+bg = ui.View(background_color='black')
+bg.present('full_screen', hide_title_bar=True)
 
-img = snapshot(v)
-img_array = np.array(ui2pil(img))[::img.scale,::img.scale]/255
-img_array = img_array[...,0]
+display_img = ui.Image('images/caves.JPG')
+w,h = display_img.size
+v = ui.ImageView(image=display_img, width=w, height=h, content_mode=ui.CONTENT_SCALE_ASPECT_FILL)
+#v = Playground(background_color='#d2e7c9')
+v.center = bg.bounds.center()
+
+mask_img = ui.Image('images/caves_mask.PNG')
+#img = snapshot(v)
+img_array = np.array(ui2pil(mask_img))[::mask_img.scale,::mask_img.scale]/255
+img_array = img_array[...,3]
 #print(img_array)
 img_array = np.where(img_array == 0, 1, 0)
+
 '''
 plt.clf()
 plt.title('Alpha filtered')
@@ -177,4 +186,8 @@ v.add_subview(fov)
 v.objc_instance.setMaskView_(fov.objc_instance)
 fov.playground = img_array
 fov.update_interval = 1/60
+
+bg.add_subview(v)
+
+
 
